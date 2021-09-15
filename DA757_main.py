@@ -1,4 +1,5 @@
 #Ver 0.0.0　差分ADCトライ
+#Ver 0.1.0　差分ADCデータが、INJに重畳されるためADC分割
 
 import board
 import busio
@@ -32,8 +33,9 @@ except:
 
 #ADS1115 instance differencial
 ADS0 = ADS.ADS1115(i2c,gain = 1,address = 0x48)
+ADS1 = ADS.ADS1115(i2c,gain = 1,address = 0x49)
 Diff1 = AnalogIn(ADS0, ADS.P0, ADS.P1)
-Single1 = AnalogIn(ADS0,ADS.P2)
+Single1 = AnalogIn(ADS1,ADS.P0)
 
 #DB init
 connection  = pymysql.connect(
@@ -62,16 +64,16 @@ class Encoder:
         self.TimeStamp = datetime.datetime.now()
         self.PariconRaw = Diff1.voltage
         self.InjectionRaw = Single1.voltage
-        self.Paricon = round(self.PariconRaw * 1.0 + 0.0)
-        self.Injection = round(self.InjectionRaw * 1.0 - 1.0)
+        self.Paricon = round(self.PariconRaw * 1.0 + 0.0,2)
+        self.Injection = round(self.InjectionRaw * 1.0 - 1.0,2)
 
     def Read(self):
         try:
             self.TimeStamp    = datetime.datetime.now()
             self.PariconRaw   = Diff1.voltage
             self.InjectionRaw = Single1.voltage
-            self.Paricon   = round(self.PariconRaw * 1.0 + 0.0)
-            self.Injection = round(self.InjectionRaw * 1.0 - 1.0)
+            self.Paricon   = round(self.PariconRaw * 1.0 + 0.0,2)
+            self.Injection = round(self.InjectionRaw * 1.0 + 0.0,3)
 
         except:
             self.Paricon   = ""
@@ -83,10 +85,10 @@ DB = DB()
 def printData():
     print("=======================================")
     print("TimeStamp     : %s" % Encoder.TimeStamp)
-    print("Paricon Raw   : %0.3f" % Encoder.PariconRaw)
-    print("Injection Raw : %0.3f" % Encoder.InjectionRaw)
-    print("Paricon       : %0.2f" % Encoder.Paricon)
-    print("Injection     : %0.2f" % Encoder.InjectionRaw)
+    print("Paricon Raw   : %0.4f" % Encoder.PariconRaw)
+    print("Injection Raw : %0.4f" % Encoder.InjectionRaw)
+    print("Paricon       : %0.4f" % Encoder.Paricon)
+    print("Injection     : %0.4f" % Encoder.Injection)
 
 lastMesure = 0
 lastSecond = 0
